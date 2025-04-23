@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
     int musicNumber = 1;
     bool playStop = false;
 
-    Rectangle player = {5000, 5000, 50, 50};
+    Rectangle player = {50, 50, 400, 250};
     SDL_Rect playerRect = { player.x, player.y, player.Width, player.Height };
     int attackOne, attackTwo, attackThree;
     Uint32 enterCooldown = 0;
