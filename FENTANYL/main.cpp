@@ -1,13 +1,6 @@
-/*
-  Hamster-crabが急いで作ったg++ベースのコンパイラーです。
-  たぶんインストールのところのパッケージをAIで調べたので多分違います。
-  なにか問題があったら
-  hamstercrab123@gmail.com
-  までメールくれ
-**/
-
-#include <iostream>
+#include "raylib.h"
 #include <cstdlib>
+#include <iostream>
 #include <string>
 #include <vector>
 #include <filesystem>
@@ -153,41 +146,117 @@ void reset()
     }
 }
 
-void fentanyL()
+int main(int argc, char* argv[])
 {
-    std::string commandi = "g++ FENTANYL/main.cpp -o fentanyL -lraylib -lGL -lm -lpthread -ldl -lrt -lX11";
-    system(commandi.c_str());
-}
-
-int main(int argc, char* argv[]) {
     std::filesystem::path basePath = std::filesystem::current_path();
     std::filesystem::path compilerPath = basePath / "compiler";
     std::vector<std::string> args(argv + 1, argv + argc);
-    for (const std::string& arg : args) {
-        if (arg == "bootstrap") bootstrap();
-        else if (arg == "build")
+    const int screenWidth = 900;
+    const int screenHeight = 600;
+
+    InitWindow(screenWidth, screenHeight, "fentanyL");
+
+    Rectangle buildR = { 80, 230, 190, 60 };
+    bool buildcolor = false;
+    bool buildtools = false;
+
+    Rectangle runR = { 500, 230, 190, 60 };
+    bool runcolor = false;
+    bool runsummon = false;
+
+    Rectangle bootstrapR = { 80, 150, 360, 60 };
+    bool bootstrapcolor = false;
+    bool bootstrapsummon = false;
+
+    SetTargetFPS(60);
+
+    while (!WindowShouldClose())
+    {
+        Vector2 mousePoint = GetMousePosition();
+        if (CheckCollisionPointRec(mousePoint, buildR))
         {
-            reset();
-            build(compilerPath);
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+            {
+                buildcolor = false;
+                buildtools = true;
+            }
+            else
+            {
+                buildcolor = true;
+            }
         }
-        else if (arg == "run") run();
-        else if (arg == "help") help();
-        else if (arg == "yajuiku") yajuiku();
-        else if (arg == "fentanyL") fentanyL();
-        else if (arg == "builrun")
+        else buildcolor = false;
+
+        if (CheckCollisionPointRec(mousePoint, runR))
         {
-            reset();
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+            {
+                runcolor = false;
+                runsummon = true;
+            }
+            else
+            {
+                runcolor = true;
+            }
+        }
+        else runcolor = false;
+
+        if (CheckCollisionPointRec(mousePoint, bootstrapR))
+        {
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+            {
+                bootstrapcolor = false;
+                bootstrapsummon = true;
+            }
+            else
+            {
+                bootstrapcolor = true;
+            }
+        }
+        else bootstrapcolor = false;
+        
+        if (buildtools)
+        {
             build(compilerPath);
+            buildtools = false;
+        }
+
+        if (runsummon)
+        {
             run();
+            runsummon = false;
         }
-        else if (arg == "install")
+
+        if (bootstrapsummon)
         {
-            reset();
-            install(compilerPath);
+            bootstrap();
+            bootstrapsummon = false;
         }
-        else if (arg == "remove") remove();
-        else if ((arg == "reset")) reset();
-        else if ((arg == "ruun")) ruun();
+        
+
+        BeginDrawing();
+
+        ClearBackground(BLACK);
+
+        DrawRectangle(buildR.x, buildR.y, buildR.width, buildR.height, GRAY);
+        DrawRectangle(buildR.x + 5, buildR.y + 5, buildR.width - 10, buildR.height - 10, WHITE);
+        if (buildcolor) DrawText("BUILD", buildR.x + 5, buildR.y + 5, 51, GRAY);
+        else if (!buildcolor) DrawText("BUILD", buildR.x + 5, buildR.y + 5, 51, BLACK);
+
+        DrawRectangle(runR.x, runR.y, runR.width, runR.height, GRAY);
+        DrawRectangle(runR.x + 5, runR.y + 5, runR.width - 10, runR.height - 10, WHITE);
+        if (runcolor) DrawText("RUN", runR.x + 5, runR.y + 5, 51, GRAY);
+        else if (!runcolor) DrawText("RUN", runR.x + 5, runR.y + 5, 51, BLACK);
+
+        DrawRectangle(bootstrapR.x, bootstrapR.y, bootstrapR.width, bootstrapR.height, GRAY);
+        DrawRectangle(bootstrapR.x + 5, bootstrapR.y + 5, bootstrapR.width - 10, bootstrapR.height - 10, WHITE);
+        if (bootstrapcolor) DrawText("BOOTSTRAP", bootstrapR.x + 5, bootstrapR.y + 5, 51, GRAY);
+        else if (!bootstrapcolor) DrawText("BOOTSTRAP", bootstrapR.x + 5, bootstrapR.y + 5, 51, BLACK);
+        
+        EndDrawing();
     }
+
+    CloseWindow();
+
     return 0;
 }

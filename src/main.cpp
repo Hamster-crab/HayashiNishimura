@@ -49,45 +49,51 @@ struct enemy {
     }
 };
 
-enemy* enemyOne = new enemy("Ochin", 10, 3, 1);
-enemy* enemyTwo = new enemy("Po", 10, 3, 1);
-enemy* enemyThree = new enemy("U", 10, 3, 1);
-enemy* enemyFive = new enemy("N", 10, 3, 1);
-enemy* enemyFour = new enemy("KO", 10, 3, 1);
+enemy* enemyOne = new enemy("slime", 10, 3, 1);
+enemy* enemyTwo = new enemy("two", 10, 3, 1);
+enemy* enemyThree = new enemy("three", 10, 3, 1);
+enemy* enemyFive = new enemy("five", 10, 3, 1);
+enemy* enemyFour = new enemy("four", 10, 3, 1);
 
 enemy* boss = new enemy("boss", 10, 3, 1);
 
 // テキスト描画関数
-void drawText(SDL_Renderer* renderer, float R, float G, float B, TTF_Font* font, const char* Text, float x, float y)
+void drawText(SDL_Renderer* renderer, float R, float G, float B, const std::filesystem::path& fontPath, int fontSize, const char* Text, float x, float y)
 {
+    TTF_Font* font = TTF_OpenFont(fontPath.string().c_str(), fontSize);
+    if (!font) {
+    std::cerr << "フォントの読み込みに失敗しました: " << TTF_GetError() << std::endl;
+    return;
+    }
+
     SDL_Color color = {static_cast<Uint8>(R), static_cast<Uint8>(G), static_cast<Uint8>(B)};
-    
     SDL_Surface* surface = TTF_RenderUTF8_Blended(font, Text, color);
     if (!surface) {
-        std::cerr << "テキストのレンダリングに失敗しました: " << TTF_GetError() << std::endl;
-        return;
+    std::cerr << "テキストのレンダリングに失敗しました: " << TTF_GetError() << std::endl;
+    TTF_CloseFont(font);
+    return;
     }
 
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-    
     int w = surface->w;
     int h = surface->h;
-    SDL_FreeSurface(surface); // SDL_Surfaceを解放するのはサイズ取得後
+    SDL_FreeSurface(surface);
 
     SDL_Rect dstRect = {static_cast<int>(x), static_cast<int>(y), w, h};
     SDL_RenderCopy(renderer, texture, NULL, &dstRect);
 
     SDL_DestroyTexture(texture);
+    TTF_CloseFont(font);
 }
 
-void drawNumber(SDL_Renderer* renderer, float R, float G, float B, TTF_Font* font, int number, float x, float y)
-{
-    // 数字を文字列に変換
-    std::string str = std::to_string(number);
+// void drawNumber(SDL_Renderer* renderer, float R, float G, float B, TTF_Font* font, int number, float x, float y)
+// {
+//     // 数字を文字列に変換
+//     std::string str = std::to_string(number);
 
-    // drawText に渡す（文字列を .c_str() で const char* に変換）
-    drawText(renderer, R, G, B, font, str.c_str(), x, y);
-}
+//     // drawText に渡す（文字列を .c_str() で const char* に変換）
+//     drawText(renderer, R, G, B, font, str.c_str(), x, y);
+// }
 
 PlayerData loadGame(const std::string& filename) {
     PlayerData data{0, 0, 0, 100}; // デフォルト値
@@ -141,7 +147,7 @@ int main(int argc, char* argv[]) {
     std::filesystem::path lethal_chinpoMusicPath; // musicNumber2
     std::filesystem::path lethal_dealMusicPath; // musicNumber3
     
-    std::filesystem::path noJapaneseFontFontsPath;
+    std::filesystem::path noJapaneseFontsPath;
     std::filesystem::path dotGothicFontsPath;
 
     std::filesystem::path woodLightImagePath;
@@ -158,7 +164,7 @@ int main(int argc, char* argv[]) {
             ikisugiMusicPath = basePath / "compiler" / "run" / "data" / "music" / "ikisugiyou.wav";
             lethal_chinpoMusicPath = basePath / "compiler" / "run" / "data" / "music" / "lethalchinpo.wav";
             lethal_dealMusicPath = basePath / "compiler" / "run" / "data" / "music" / "LETHAL_DEAL.wav";
-            noJapaneseFontFontsPath = basePath / "compiler"  / "run" / "data" / "fonts" / "8-bit-no-ja" / "8bitOperatorPlus8-Bold.ttf";
+            noJapaneseFontsPath = basePath / "compiler"  / "run" / "data" / "fonts" / "8-bit-no-ja" / "8bitOperatorPlus8-Bold.ttf";
             dotGothicFontsPath = basePath / "compiler"  / "run" / "data" / "fonts" / "ja-16-bit" / "DotGothic16-Regular.ttf";
             woodLightImagePath = basePath / "compiler"  / "run" / "data" / "image" / "woodLight.png";
             waruImagePath = basePath / "compiler"  / "run" / "data" / "image" / "Isee!It'sallmyfault!Imadeasmallmistakeandit'sallmyfault!.png";
@@ -170,7 +176,7 @@ int main(int argc, char* argv[]) {
         {
             ikisugiMusicPath = std::filesystem::path("opt") / "masorpg" / "run" / "data" / "music" / "ikisugiyou.wav";
             lethal_chinpoMusicPath = std::filesystem::path("opt") / "masorpg" / "run" / "data" / "music" / "lethalchinpo.wav";
-            noJapaneseFontFontsPath = std::filesystem::path("opt") / "masorpg" / "run" / "data" / "fonts" / "8-bit-no-ja" / "8bitOperatorPlus8-Bold.ttf";
+            noJapaneseFontsPath = std::filesystem::path("opt") / "masorpg" / "run" / "data" / "fonts" / "8-bit-no-ja" / "8bitOperatorPlus8-Bold.ttf";
             dotGothicFontsPath = std::filesystem::path("opt") / "masorpg" / "run" / "data" / "fonts" / "ja-16-bit" / "DotGothic16-Regular.ttf";
             woodLightImagePath = std::filesystem::path("opt") / "masorpg" / "run" / "data" / "image" / "woodLight.png";
         }
@@ -230,9 +236,9 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    int title = 1; // 1 -> タイトル,  2 -> ゲーム,  3 -> 設定,  4 -> ワールド設定
+    int title = 5; // 1 -> タイトル,  2 -> ゲーム,  3 -> 設定,  4 -> ワールド設定   5 -> エンドロール
     // bool roomNumberEditMusicTF = false;
-    int roomNumber = 1; // 1 = 村   2 = ボス城付近   3 = ボス城   4 = ボス城最上階   5 = ボス
+    int roomNumber = 1; // 1 = 村   2 = ボス城付近   3 = ボス城   4 = ボス城最上階   5 = ボス  6 -> sampleFight
     int musicNumber = 1;
     bool playStop = false;
 
@@ -245,8 +251,9 @@ int main(int argc, char* argv[]) {
     rect.x = 800 / 2 - WindowSise.Width / 2;
     rect.y = 600 / 2 - WindowSise.Height / 2;
 
-    TTF_Font* noJapaneseFontTitle = TTF_OpenFont(noJapaneseFontFontsPath.string().c_str(), 50);
-    TTF_Font* noJapaneseFont = TTF_OpenFont(noJapaneseFontFontsPath.string().c_str(), 24);
+    TTF_Font* noJapaneseFontTitle = TTF_OpenFont(noJapaneseFontsPath.string().c_str(), 50);
+    TTF_Font* japaneseFontTitle = TTF_OpenFont(dotGothicFontsPath.string().c_str(), 50);
+    TTF_Font* noJapaneseFont = TTF_OpenFont(noJapaneseFontsPath.string().c_str(), 24);
     TTF_Font* japaneseFont = TTF_OpenFont(dotGothicFontsPath.string().c_str(), 24);
 
     SDL_Surface* woodLightImage = IMG_Load(woodLightImagePath.string().c_str());
@@ -272,6 +279,7 @@ int main(int argc, char* argv[]) {
 
             if (event.type == SDL_KEYDOWN) {
                 if (title == 1) {
+                    titleCursor.x = 3;
                     if (isKeyPressed(event, SDLK_DOWN, enterCooldown)) {
                         titleCursor.y += 30.0f;
                     }
@@ -294,6 +302,16 @@ int main(int argc, char* argv[]) {
                     {
                         if (!playStop) playStop = true;
                         else if (playStop) playStop = false;
+                    }
+                    if (playStop)
+                    {
+                        titleCursor.x = 3;
+                        if (isKeyPressed(event, SDLK_DOWN, enterCooldown)) {
+                            titleCursor.y += 50.0f;
+                        }
+                        if (isKeyPressed(event, SDLK_UP, enterCooldown)) {
+                            titleCursor.y -= 50.0f;
+                        }
                     }
                 }
                 if (title == 3)
@@ -379,11 +397,11 @@ int main(int argc, char* argv[]) {
             if (titleCursor.y < 250) titleCursor.y = 250;
             if (titleCursor.y > 310) titleCursor.y = 310;
 
-            drawText(renderer, 0.0f, 0.0f, 0.0f, noJapaneseFontTitle, "MasoRPG", 10, 30.0f);
-            drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "スタート", 20, 250.0f);
-            drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "設定", 20, 280.0f);
-            drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "おわり", 20, 310.0f);
-            drawText(renderer, 255.0f, 0.0f, 0.0f, japaneseFont, ">", titleCursor.x, titleCursor.y);
+            drawText(renderer, 0, 0, 0, noJapaneseFontsPath, 50, "MasoRPG", 100, 100);
+            drawText(renderer, 0, 0, 0, dotGothicFontsPath, 24, "スタート", 100, 100);
+            drawText(renderer, 0, 0, 0, dotGothicFontsPath, 24, "設定", 100, 100);
+            drawText(renderer, 0, 0, 0, dotGothicFontsPath, 24, "おわり", 100, 100);
+            drawText(renderer, 0, 0, 0, dotGothicFontsPath, 24, ">", 100, 100);
 
             SDL_RenderPresent(renderer);
             SDL_Delay(8);
@@ -393,43 +411,57 @@ int main(int argc, char* argv[]) {
             camera.follow(playerRect);
             camera.setPosition(playerRect.x, playerRect.y);
             camera.clampPosition(10000, 10000);
-
-            if (roomNumber == 5)
-            {
-                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-            }
-            else
-            {
-                if (isKeyDown(event, SDLK_UP)) playerRect.y -= 5;
-                if (isKeyDown(event, SDLK_DOWN)) playerRect.y += 5;
-                if (isKeyDown(event, SDLK_LEFT)) playerRect.x -= 5;
-                if (isKeyDown(event, SDLK_RIGHT)) playerRect.x += 5;
-            }
             SDL_RenderClear(renderer);
 
             SDL_Rect screenRect = camera.worldToScreen(playerRect);
-
-            drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "X: ", 10.0f, 100.0f);
-            drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "Y: ", 10.0f, 130.0f);
-            drawNumber(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, playerRect.x, 40.0f, 100.0f);
-            drawNumber(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, playerRect.y, 40.0f, 130.0f);
 
             if (playerRect.x <= -15) playerRect.x = -15;
             if (playerRect.y <= -10) playerRect.y = -10;
             if (playerRect.x >= 755) playerRect.x = 755;
             if (playerRect.y >= 450) playerRect.y = 450;
 
-            if (roomNumber == 5)
-            {}
-            else
+            if (roomNumber == 1)
             {
-                SDL_RenderCopy(renderer, woodLightTexture, nullptr, &screenRect);
                 if (playStop)
                 {
-                    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // 白
-                    SDL_RenderFillRect(renderer, &rect);
+                    if (titleCursor.y < 50) titleCursor.y = 50;
+                    if (titleCursor.y > 250) titleCursor.y = 250;
+                    SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
+                    drawText(renderer, 0, 0, 0, dotGothicFontsPath, 24, "セーブ", 20, 50);
+                    drawText(renderer, 0, 0, 0, dotGothicFontsPath, 24, "ステータス", 20, 100);
+                    drawText(renderer, 0, 0, 0, dotGothicFontsPath, 24, "スキル", 20, 150);
+                    drawText(renderer, 0, 0, 0, dotGothicFontsPath, 24, "hayasHi", 20, 200);
+                    drawText(renderer, 0, 0, 0, dotGothicFontsPath, 24, "終わろう", 20, 250);
+                    drawText(renderer, 0, 0, 0, dotGothicFontsPath, 24, ">", titleCursor.x, titleCursor.y);
+                    // SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // 白
+                    // SDL_RenderFillRect(renderer, &rect);
+                }
+                else if (!playStop)
+                {
+                    if (isKeyDown(event, SDLK_UP)) playerRect.y -= 5;
+                    if (isKeyDown(event, SDLK_DOWN)) playerRect.y += 5;
+                    if (isKeyDown(event, SDLK_LEFT)) playerRect.x -= 5;
+                    if (isKeyDown(event, SDLK_RIGHT)) playerRect.x += 5;
+                    // drawText(renderer, 0, 0, 0, dotGothicFontsPath, 24, "X: ", 10, 100);
+                    // drawText(renderer, 0, 0, 0, dotGothicFontsPath, 24, "Y: ", 10, 130);
+                    // drawNumber(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, playerRect.x, 40.0f, 100.0f);
+                    // drawNumber(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, playerRect.y, 40.0f, 130.0f);
+                    SDL_RenderCopy(renderer, woodLightTexture, nullptr, &screenRect);
                 }
             }
+            else if (roomNumber == 5)
+            {
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+            }
+            else if (roomNumber == 6)
+            {
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+                SDL_RenderClear(renderer);
+                SDL_RenderPresent(renderer);
+                SDL_Delay(16);
+            }
+            else
+            {}
             SDL_RenderPresent(renderer);
             SDL_Delay(16);
         }
@@ -441,7 +473,8 @@ int main(int argc, char* argv[]) {
             if (titleCursor.y < 250) titleCursor.y = 250;
             if (titleCursor.y > 310) titleCursor.y = 310;
 
-            drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "何もないよ", 20, 250.0f);
+            // drawText(renderer, 0, 0, 0, dotGothicFontsPath, 24, "", 20, 250);
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "何もないよ", 20, 250.0f);
             // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "設定", 20, 280.0f);
             // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "おわり", 20, 310.0f);
             // drawText(renderer, 255.0f, 0.0f, 0.0f, japaneseFont, ">", titleCursor.x, titleCursor.y);
@@ -457,12 +490,44 @@ int main(int argc, char* argv[]) {
             if (titleCursor.y < 100) titleCursor.y = 100;
             if (titleCursor.y > 200) titleCursor.y = 200;
 
-            drawText(renderer, 0.0f, 0.0f, 0.0f, noJapaneseFontTitle, "World", WindowSise.Width / 2 - 80, 20.0f);
+            drawText(renderer, 0, 0, 0, noJapaneseFontsPath, 50, "World", WindowSise.Width / 2 - 80, 20);
 
-            drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "World 1", WindowSise.Width / 2 - 40, 100.0f);
-            drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "World 2", WindowSise.Width / 2 - 40, 150.0f);
-            drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "World 3", WindowSise.Width / 2 - 40, 200.0f);
-            drawText(renderer, 255.0f, 0.0f, 0.0f, japaneseFont, ">", titleCursor.x, titleCursor.y);
+            drawText(renderer, 0, 0, 0, dotGothicFontsPath, 50, "World 1", WindowSise.Width / 2 - 40, 100);
+            drawText(renderer, 0, 0, 0, dotGothicFontsPath, 50, "World 2", WindowSise.Width / 2 - 40, 150);
+            drawText(renderer, 0, 0, 0, dotGothicFontsPath, 50, "World 3", WindowSise.Width / 2 - 40, 200);
+            drawText(renderer, 0, 0, 0, dotGothicFontsPath, 24, ">", titleCursor.x, titleCursor.y);
+
+            SDL_RenderPresent(renderer);
+            SDL_Delay(8);
+        }
+        else if (title == 5)
+        {
+            SDL_SetRenderDrawColor(renderer, 0, 184, 255, 255);
+            SDL_RenderClear(renderer);
+
+            if (titleCursor.y < 100) titleCursor.y = 100;
+            if (titleCursor.y > 200) titleCursor.y = 200;
+            drawText(renderer, 0, 0, 0, noJapaneseFontsPath, 50, "MasoRPG", WindowSise.Width / 2 - 130, 30);
+            drawText(renderer, 0, 0, 0, dotGothicFontsPath, 15, "カルパスコンブ", WindowSise.Width / 2, 60.0f);
+            drawText(renderer, 0, 0, 0, dotGothicFontsPath, 15, "© 2025 ~ ", WindowSise.Width / 2 - 120, 60.0f);
+
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFontTitle, "プロデューサー(githubのid)", WindowSise.Width / 2 - 40, 100.0f);
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "RainbowPuiPuiMolcar", WindowSise.Width / 2 - 40, 100.0f);
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "hamutaro1221(旧MeimaruNishimura328)", WindowSise.Width / 2 - 40, 100.0f);
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFontTitle, "奴隷(githubのid)", WindowSise.Width / 2 - 40, 100.0f);
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "Hamster-crab", WindowSise.Width / 2 - 40, 150.0f);
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFontTitle, "デザイナー(githubのid)", WindowSise.Width / 2 - 40, 200.0f);
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "RainbowPuiPuiMolcar", WindowSise.Width / 2 - 40, 200.0f);
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "hamutaro1221(旧MeimaruNishimura328)", WindowSise.Width / 2 - 40, 200.0f);
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFontTitle, "音楽(githubのid)", WindowSise.Width / 2 - 40, 200.0f);
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "RainbowPuiPuiMolcar", WindowSise.Width / 2 - 40, 200.0f);
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "Hamster-crab", WindowSise.Width / 2 - 40, 200.0f);
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFontTitle, "ストーリー担当(githubのid)", WindowSise.Width / 2 - 40, 200.0f);
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "RainbowPuiPuiMolcar", WindowSise.Width / 2 - 40, 200.0f);
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "hamutaro1221(旧MeimaruNishimura328)", WindowSise.Width / 2 - 40, 200.0f);
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFontTitle, "テスター", WindowSise.Width / 2 - 40, 200.0f);
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "いない", WindowSise.Width / 2 - 40, 200.0f);
+            // drawText(renderer, 0.0f, 0.0f, 0.0f, japaneseFont, "", WindowSise.Width / 2 - 40, 200.0f);
 
             SDL_RenderPresent(renderer);
             SDL_Delay(8);
@@ -476,6 +541,7 @@ int main(int argc, char* argv[]) {
     delete enemyFour;
     delete enemyFive;
     TTF_CloseFont(noJapaneseFontTitle);
+    TTF_CloseFont(japaneseFontTitle);
     TTF_CloseFont(noJapaneseFont);
     TTF_CloseFont(japaneseFont);
     SDL_DestroyTexture(woodLightTexture);
